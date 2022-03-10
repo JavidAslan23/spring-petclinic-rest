@@ -64,6 +64,7 @@ public class Visit extends BaseEntity {
     @Column(name = "scheduled")
     private Boolean scheduled;
 
+    ///test pull request
     @Column(name = "ad_hoc")
     private Boolean adHoc;
 
