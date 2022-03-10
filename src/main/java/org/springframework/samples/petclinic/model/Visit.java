@@ -62,17 +62,19 @@ public class Visit extends BaseEntity {
     private String description;
 
     @Column(name = "scheduled")
-    private Boolean scheduled;
+    private Boolean scheduled;  // a way to distinguish between scheduled and not scheduled visits
 
+    ///test pull request
     @Column(name = "ad_hoc")
     private Boolean adHoc;
 
     @ManyToOne
     @JoinColumn(name = "vet_id")
-    private Vet vet;
+    private Vet vet;  // vet relation already created to visit
+
 
     @Column(name = "is_paid")
-    private Boolean isPaid;
+    private Boolean isPaid; // already created field for marking as paid or not
 
     /**
      * Holds value of property pet.

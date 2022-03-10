@@ -18,6 +18,7 @@ package org.springframework.samples.petclinic.rest;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
@@ -41,7 +42,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * @author Vitaliy Fedoriv
- *
  */
 
 @RestController
@@ -49,86 +49,82 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequestMapping("api/visits")
 public class VisitRestController {
 
-	@Autowired
-	private ClinicService clinicService;
+    @Autowired
+    private ClinicService clinicService;
 
-    @PreAuthorize( "hasRole(@roles.OWNER_ADMIN)" )
-	@RequestMapping(value = "", method = RequestMethod.GET, produces = "application/json")
-	public ResponseEntity<Collection<Visit>> getAllVisits(){
-		Collection<Visit> visits = new ArrayList<Visit>();
-		visits.addAll(this.clinicService.findAllVisits());
-		if (visits.isEmpty()){
-			return new ResponseEntity<Collection<Visit>>(HttpStatus.NOT_FOUND);
-		}
-		return new ResponseEntity<Collection<Visit>>(visits, HttpStatus.OK);
-	}
+    @PreAuthorize("hasRole(@roles.OWNER_ADMIN)")
+    @RequestMapping(value = "", method = RequestMethod.GET, produces = "application/json")
+    public ResponseEntity<Collection<Visit>> getAllVisits() {
 
-    @PreAuthorize( "hasRole(@roles.OWNER_ADMIN)" )
-	@RequestMapping(value = "/{visitId}", method = RequestMethod.GET, produces = "application/json")
-	public ResponseEntity<Visit> getVisit(@PathVariable("visitId") int visitId){
-		Visit visit = this.clinicService.findVisitById(visitId);
-		if(visit == null){
-			return new ResponseEntity<Visit>(HttpStatus.NOT_FOUND);
-		}
-		return new ResponseEntity<Visit>(visit, HttpStatus.OK);
-	}
+        List<Visit> visits = this.clinicService.getAllVisits(); // simplified get all method
 
-    @PreAuthorize( "hasRole(@roles.OWNER_ADMIN)" )
-	@RequestMapping(value = "", method = RequestMethod.POST, produces = "application/json")
-	public ResponseEntity<Visit> addVisit(@RequestBody @Valid Visit visit, BindingResult bindingResult, UriComponentsBuilder ucBuilder){
-		BindingErrorsResponse errors = new BindingErrorsResponse();
-		HttpHeaders headers = new HttpHeaders();
-		if(bindingResult.hasErrors() || (visit == null) || (visit.getPet() == null) || visit.getVet() == null){
-			errors.addAllErrors(bindingResult);
-			headers.add("errors", errors.toJSON());
-			return new ResponseEntity<Visit>(headers, HttpStatus.BAD_REQUEST);
-		}
-		visit.setPaid(false);
+        if (visits.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(visits, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole(@roles.OWNER_ADMIN)")
+    @RequestMapping(value = "/{visitId}", method = RequestMethod.GET, produces = "application/json")
+    public ResponseEntity<Visit> getVisit(@PathVariable("visitId") int visitId) {
+        Visit visit = this.clinicService.getVisitById(visitId);
+        if (visit == null) {
+            return new ResponseEntity<Visit>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<Visit>(visit, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole(@roles.OWNER_ADMIN)")
+    @RequestMapping(value = "", method = RequestMethod.POST, produces = "application/json")
+    public ResponseEntity<Visit> addVisit(@RequestBody @Valid Visit visit, BindingResult bindingResult, UriComponentsBuilder ucBuilder) {
+        BindingErrorsResponse errors = new BindingErrorsResponse();
+        HttpHeaders headers = new HttpHeaders();
+        if (bindingResult.hasErrors() || (visit == null) || (visit.getPet() == null) || visit.getVet() == null) {
+            errors.addAllErrors(bindingResult);
+            headers.add("errors", errors.toJSON());
+            return new ResponseEntity<Visit>(headers, HttpStatus.BAD_REQUEST);
+        }
+        visit.setPaid(false);
         this.clinicService.saveVisit(visit);
-		headers.setLocation(ucBuilder.path("/api/visits/{id}").buildAndExpand(visit.getId()).toUri());
-		return new ResponseEntity<Visit>(visit, headers, HttpStatus.CREATED);
-	}
+        headers.setLocation(ucBuilder.path("/api/visits/{id}").buildAndExpand(visit.getId()).toUri());
+        return new ResponseEntity<Visit>(visit, headers, HttpStatus.CREATED);
+    }
 
-    @PreAuthorize( "hasRole(@roles.OWNER_ADMIN)" )
-	@RequestMapping(value = "/{visitId}", method = RequestMethod.PUT, produces = "application/json")
-	public ResponseEntity<Visit> updateVisit(@PathVariable("visitId") int visitId, @RequestBody @Valid Visit visit, BindingResult bindingResult){
-		BindingErrorsResponse errors = new BindingErrorsResponse();
-		HttpHeaders headers = new HttpHeaders();
-		if(bindingResult.hasErrors() || (visit == null) || (visit.getPet() == null)){
-			errors.addAllErrors(bindingResult);
-			headers.add("errors", errors.toJSON());
-			return new ResponseEntity<Visit>(headers, HttpStatus.BAD_REQUEST);
-		}
-		Visit currentVisit = this.clinicService.findVisitById(visitId);
-		if(currentVisit == null){
-			return new ResponseEntity<Visit>(HttpStatus.NOT_FOUND);
-		}
-		currentVisit.setDate(visit.getDate());
-		currentVisit.setDescription(visit.getDescription());
-		currentVisit.setPet(visit.getPet());
-        currentVisit.setAdHoc(visit.getAdHoc());
-        currentVisit.setScheduled(visit.getScheduled());
-		this.clinicService.saveVisit(currentVisit);
-		return new ResponseEntity<Visit>(currentVisit, HttpStatus.NO_CONTENT);
-	}
+    @PreAuthorize("hasRole(@roles.OWNER_ADMIN)")
+    @RequestMapping(value = "/{visitId}", method = RequestMethod.PUT, produces = "application/json")
+    public ResponseEntity<Visit> updateVisit(@PathVariable("visitId") int visitId, @RequestBody @Valid Visit visit, BindingResult bindingResult) {
+        BindingErrorsResponse errors = new BindingErrorsResponse();
+        HttpHeaders headers = new HttpHeaders();
+        if (bindingResult.hasErrors() || (visit == null) || (visit.getPet() == null)) {
+            errors.addAllErrors(bindingResult);
+            headers.add("errors", errors.toJSON());
+            return new ResponseEntity<Visit>(headers, HttpStatus.BAD_REQUEST);
+        }
 
-    @PreAuthorize( "hasRole(@roles.OWNER_ADMIN)" )
-	@RequestMapping(value = "/{visitId}", method = RequestMethod.DELETE, produces = "application/json")
-	@Transactional
-	public ResponseEntity<Void> deleteVisit(@PathVariable("visitId") int visitId){
-		Visit visit = this.clinicService.findVisitById(visitId);
-		if(visit == null){
-			return new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
-		}
-		this.clinicService.deleteVisit(visit);
-		return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
-	}
+        // I deleted codes which we dont have need anymore after implementing my new
+        // updateVisit() method
 
-    @PreAuthorize( "hasRole(@roles.VET_ADMIN)" )
+        this.clinicService.updateVisit(visitId, visit);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PreAuthorize("hasRole(@roles.OWNER_ADMIN)")
+    @RequestMapping(value = "/{visitId}", method = RequestMethod.DELETE, produces = "application/json")
+    @Transactional
+    public ResponseEntity<Void> deleteVisit(@PathVariable("visitId") int visitId) {
+        Visit visit = this.clinicService.findVisitById(visitId);
+        if (visit == null) {
+            return new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
+        }
+        this.clinicService.deleteVisit(visit);
+        return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+    }
+
+    @PreAuthorize("hasRole(@roles.VET_ADMIN)")
     @RequestMapping(value = "/{visitId}/payment", method = RequestMethod.PUT, produces = "application/json")
-    public ResponseEntity<Visit> markPaid(@PathVariable("visitId") int visitId){
+    public ResponseEntity<Visit> markPaid(@PathVariable("visitId") int visitId) {
         Visit currentVisit = this.clinicService.findVisitById(visitId);
-        if(currentVisit == null){
+        if (currentVisit == null) {
             return new ResponseEntity<Visit>(HttpStatus.NOT_FOUND);
         }
         currentVisit.setPaid(true);

@@ -125,7 +125,7 @@ public class VetRestController {
         for (Visit visit: allVisits){
             if (visit.getVet().getId() == vetId) clinicService.deleteVisit(visit);
         }
-        this.clinicService.deleteVet(vet);
+        this.clinicService.deleteVet(vet);  // we can also use cascade=CascadeType.REMOVE to achieve this
 		return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
 	}
 
