@@ -32,7 +32,11 @@ import org.springframework.samples.petclinic.service.ClinicService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -53,7 +57,7 @@ public class VisitRestController {
 	private ClinicService clinicService;
 
     @PreAuthorize( "hasRole(@roles.OWNER_ADMIN)" )
-	@RequestMapping(value = "", method = RequestMethod.GET, produces = "application/json")
+	@GetMapping(value = "", produces = "application/json")
 	public ResponseEntity<Collection<Visit>> getAllVisits(){
 		Collection<Visit> visits = new ArrayList<Visit>();
 		visits.addAll(this.clinicService.findAllVisits());
@@ -64,7 +68,7 @@ public class VisitRestController {
 	}
 
     @PreAuthorize( "hasRole(@roles.OWNER_ADMIN)" )
-	@RequestMapping(value = "/{visitId}", method = RequestMethod.GET, produces = "application/json")
+	@GetMapping(value = "/{visitId}", produces = "application/json")
 	public ResponseEntity<Visit> getVisit(@PathVariable("visitId") int visitId){
 		Visit visit = this.clinicService.findVisitById(visitId);
 		if(visit == null){
@@ -74,7 +78,7 @@ public class VisitRestController {
 	}
 
     @PreAuthorize( "hasRole(@roles.OWNER_ADMIN)" )
-	@RequestMapping(value = "", method = RequestMethod.POST, produces = "application/json")
+	@PostMapping(value = "", produces = "application/json")
 	public ResponseEntity<Visit> addVisit(@RequestBody @Valid Visit visit, BindingResult bindingResult, UriComponentsBuilder ucBuilder){
 		BindingErrorsResponse errors = new BindingErrorsResponse();
 		HttpHeaders headers = new HttpHeaders();
@@ -90,7 +94,7 @@ public class VisitRestController {
 	}
 
     @PreAuthorize( "hasRole(@roles.OWNER_ADMIN)" )
-	@RequestMapping(value = "/{visitId}", method = RequestMethod.PUT, produces = "application/json")
+	@PutMapping(value = "/{visitId}", produces = "application/json")
 	public ResponseEntity<Visit> updateVisit(@PathVariable("visitId") int visitId, @RequestBody @Valid Visit visit, BindingResult bindingResult){
 		BindingErrorsResponse errors = new BindingErrorsResponse();
 		HttpHeaders headers = new HttpHeaders();
@@ -113,7 +117,7 @@ public class VisitRestController {
 	}
 
     @PreAuthorize( "hasRole(@roles.OWNER_ADMIN)" )
-	@RequestMapping(value = "/{visitId}", method = RequestMethod.DELETE, produces = "application/json")
+	@DeleteMapping(value = "/{visitId}", produces = "application/json")
 	@Transactional
 	public ResponseEntity<Void> deleteVisit(@PathVariable("visitId") int visitId){
 		Visit visit = this.clinicService.findVisitById(visitId);
@@ -125,7 +129,7 @@ public class VisitRestController {
 	}
 
     @PreAuthorize( "hasRole(@roles.VET_ADMIN)" )
-    @RequestMapping(value = "/{visitId}/payment", method = RequestMethod.PUT, produces = "application/json")
+    @PutMapping(value = "/{visitId}/payment", produces = "application/json")
     public ResponseEntity<Visit> markPaid(@PathVariable("visitId") int visitId){
         Visit currentVisit = this.clinicService.findVisitById(visitId);
         if(currentVisit == null){
